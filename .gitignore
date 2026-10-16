@@ -1,0 +1,16 @@
+# Not needed to package the add-on: docs and dev setup stay local
+docs/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.mypy_cache/
+
+# Anki writes the user's add-on settings here; not source
+anki-addon/meta.json
+
+# Packaged builds
+*.ankiaddon
+*.zip
