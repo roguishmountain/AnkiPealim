@@ -1,4 +1,4 @@
-"""Dialog for entering a Hebrew verb to look up on pealim.com."""
+"""Dialog for entering a Hebrew word to look up on pealim.com."""
 
 from aqt import AnkiQt
 from aqt.deckchooser import DeckChooser
@@ -11,14 +11,14 @@ from .tenses import TENSES
 from .ui import ok_cancel_buttons
 
 
-class AddVerbDialog(QDialog):
+class AddWordDialog(QDialog):
     def __init__(self, mw: AnkiQt, settings: Settings) -> None:
         super().__init__(mw)
-        self.setWindowTitle("Add Pealim verb")
+        self.setWindowTitle("Add Pealim word")
         disable_help_button(self)
 
-        label = QLabel("Hebrew verb (infinitive), e.g. לקרוא:")
-        self.verb_input = QLineEdit()
+        label = QLabel("Hebrew word, e.g. ספר:")
+        self.word_input = QLineEdit()
 
         # Anki's own deck button, as in the Add Cards window.
         # Its popup can also create a new deck.
@@ -27,7 +27,9 @@ class AddVerbDialog(QDialog):
         deck_row = QWidget()
         self.deck_chooser = DeckChooser(mw, deck_row, starting_deck_id=settings.deck_id)
 
-        tenses_box = QGroupBox("Make cards for")
+        # The word isn't known until after the search,
+        # so the tenses are always shown and only used if it turns out to be a verb.
+        tenses_box = QGroupBox("Verb tenses")
         tenses_layout = QVBoxLayout(tenses_box)
         self.tense_checkboxes: dict[str, QCheckBox] = {}
         for tense in TENSES:
@@ -38,15 +40,15 @@ class AddVerbDialog(QDialog):
 
         layout = QVBoxLayout(self)
         layout.addWidget(label)
-        layout.addWidget(self.verb_input)
+        layout.addWidget(self.word_input)
         layout.addWidget(deck_row)
         layout.addWidget(tenses_box)
         layout.addWidget(ok_cancel_buttons(self))
 
-        self.verb_input.setFocus()
+        self.word_input.setFocus()
 
-    def verb(self) -> str:
-        return self.verb_input.text().strip()
+    def word(self) -> str:
+        return self.word_input.text().strip()
 
     def settings(self) -> Settings:
         return Settings(
@@ -56,11 +58,9 @@ class AddVerbDialog(QDialog):
 
     def accept(self) -> None:
         # Keep the dialog open until the input is usable.
-        if not is_hebrew(self.verb()):
-            showWarning("Type the verb in Hebrew letters, e.g. לקרוא.", parent=self)
-            return
-        if not self.settings().tenses:
-            showWarning("Tick at least one tense.", parent=self)
+        # No tense check here: the word may not be a verb.
+        if not is_hebrew(self.word()):
+            showWarning("Type the word in Hebrew letters, e.g. לקרוא.", parent=self)
             return
         super().accept()
 

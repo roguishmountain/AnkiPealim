@@ -1,10 +1,19 @@
-# Pealim Verb Cards
+# Pealim Cards
 
-An Anki add-on that makes flashcards for Hebrew verbs from [pealim.com](https://www.pealim.com).
-Click **Pealim** in Anki's top toolbar, type an infinitive in Hebrew (e.g. `לקרוא`),
-choose a deck and the tenses you want,
+An Anki add-on that makes flashcards for Hebrew words from [pealim.com](https://www.pealim.com).
+Click **Pealim** in Anki's top toolbar, type a word in Hebrew (e.g. `ספר`),
+choose a deck and, for verbs, the tenses you want,
 and it adds cards with the forms in Hebrew (with nikkud) on one side
 and their English meanings on the other.
+If several words match, you pick one from a list.
+
+| Part of speech | Hebrew side | English side |
+|---|---|---|
+| Verb | forms of each chosen tense, one note per tense or person | meanings, then the tense |
+| Noun | singular and plural, then the gender: `(ז׳)` or `(נ׳)` | meanings, then `(noun)` |
+| Adjective | masculine and feminine, singular and plural | meaning, then `(adjective)` |
+| Preposition, pronoun, numeral | the base form, then forms with suffixes, one note per person | meanings, then the part of speech |
+| Anything else (e.g. adverbs) | the word | its meaning, then the part of speech |
 
 Notes use Anki's built-in **Basic (and reversed card)** note type
 and are tagged `pealim`.

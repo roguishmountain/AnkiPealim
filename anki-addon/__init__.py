@@ -1,4 +1,4 @@
-"""Pealim Verb Cards: build Anki cards for Hebrew verbs from pealim.com.
+"""Pealim Cards: build Anki cards for Hebrew words from pealim.com.
 
 Anki loads this file at startup;
 it only adds the toolbar link.
@@ -8,7 +8,7 @@ The rest is in flow.py.
 from aqt import gui_hooks
 from aqt.toolbar import Toolbar
 
-from .flow import add_verb
+from .flow import add_word
 
 
 def add_toolbar_link(links: list[str], toolbar: Toolbar) -> None:
@@ -16,8 +16,8 @@ def add_toolbar_link(links: list[str], toolbar: Toolbar) -> None:
         toolbar.create_link(
             "pealim",
             "Pealim",
-            add_verb,
-            tip="Add a Hebrew verb from pealim.com",
+            add_word,
+            tip="Add a Hebrew word from pealim.com",
             id="pealim",
         )
     )

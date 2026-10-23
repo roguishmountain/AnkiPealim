@@ -9,27 +9,27 @@ from aqt.qt import QDialog
 from aqt.utils import showWarning, tooltip
 
 from .cards import build_card_texts
-from .dialog import AddVerbDialog
+from .dialog import AddWordDialog
 from .notes import AddResult, add_cards
-from .pealim import Form, SearchResult, fetch_verb_forms, search, verb_matches
-from .picker import VerbPickerDialog
+from .pealim import Form, SearchResult, fetch_forms, search
+from .picker import WordPickerDialog
 from .settings import Settings
 
 
-def add_verb() -> None:
+def add_word() -> None:
     # Dialog choices are saved in the add-on config (meta.json),
     # starting from the defaults in config.json.
     config = mw.addonManager.getConfig(__name__)
     assert config is not None  # only None without a config.json
     settings = Settings.from_config(config)
     settings.deck_id = _starting_deck_id(settings.deck_id)
-    dialog = AddVerbDialog(mw, settings)
+    dialog = AddWordDialog(mw, settings)
     if dialog.exec() != QDialog.DialogCode.Accepted:
         return
 
     settings = dialog.settings()
     mw.addonManager.writeConfig(__name__, settings.to_config())
-    _find_verb(dialog.verb(), settings)
+    _find_word(dialog.word(), settings)
 
 
 def _starting_deck_id(saved_deck_id: DeckId | None) -> DeckId | None:
@@ -40,36 +40,42 @@ def _starting_deck_id(saved_deck_id: DeckId | None) -> DeckId | None:
     return saved_deck_id
 
 
-def _find_verb(query: str, settings: Settings) -> None:
-    def on_found(verbs: list[SearchResult]) -> None:
-        if not verbs:
-            showWarning(f"No verb found on Pealim for {query}.")
+def _find_word(query: str, settings: Settings) -> None:
+    def on_found(words: list[SearchResult]) -> None:
+        if not words:
+            showWarning(f"Nothing found on Pealim for {query}.")
             return
-        if len(verbs) == 1:
-            verb = verbs[0]
+        if len(words) == 1:
+            word = words[0]
         else:
-            picker = VerbPickerDialog(mw, query, verbs)
+            picker = WordPickerDialog(mw, query, words)
             if picker.exec() != QDialog.DialogCode.Accepted:
                 return
-            verb = picker.selected_verb()
-        _fetch_and_add(verb, settings)
+            word = picker.selected_word()
+        _fetch_and_add(word, settings)
 
     _run_network_op(
-        lambda: verb_matches(search(query)),
+        lambda: search(query),
         on_found,
         progress="Searching Pealim…",
         error="Couldn't search Pealim",
     )
 
 
-def _fetch_and_add(verb: SearchResult, settings: Settings) -> None:
+def _fetch_and_add(word: SearchResult, settings: Settings) -> None:
     deck_id = settings.deck_id
     assert deck_id is not None  # the dialog's deck chooser always has a deck
 
     def on_fetched(forms: dict[str, Form]) -> None:
-        cards = build_card_texts(verb.lemma, forms, settings.tenses)
+        cards = build_card_texts(word, forms, settings.tenses)
         if not cards:
-            showWarning(f"No forms found on Pealim for {verb.lemma} in the chosen tenses.")
+            # Only verbs can end up with no cards.
+            if settings.tenses:
+                showWarning(f"No forms found on Pealim for {word.lemma} in the chosen tenses.")
+            else:
+                # No Hebrew here: a message starting with it
+                # is laid out right-to-left and the English gets jumbled.
+                showWarning("That word is a verb. Tick at least one tense.")
             return
         # One undoable collection change for all the notes.
         CollectionOp(parent=mw, op=lambda col: add_cards(col, cards, deck_id)).success(
@@ -78,7 +84,7 @@ def _fetch_and_add(verb: SearchResult, settings: Settings) -> None:
 
     def on_added(result: AddResult) -> None:
         deck_name = mw.col.decks.name_if_exists(deck_id) or "deck"
-        message = f"Added {result.added} note(s) for {verb.lemma} to {deck_name}."
+        message = f"Added {result.added} note(s) for {word.lemma} to {deck_name}."
         if result.duplicates:
             message += f" Skipped {result.duplicates} already in that deck."
         tooltip(message, period=5000)
@@ -87,10 +93,10 @@ def _fetch_and_add(verb: SearchResult, settings: Settings) -> None:
         showWarning(f"Couldn't add the notes:\n{error}")
 
     _run_network_op(
-        lambda: fetch_verb_forms(verb.url),
+        lambda: fetch_forms(word.url),
         on_fetched,
-        progress=f"Loading {verb.lemma}…",
-        error=f"Couldn't load {verb.url}",
+        progress=f"Loading {word.lemma}…",
+        error=f"Couldn't load {word.url}",
     )
 
 

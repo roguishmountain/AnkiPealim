@@ -1,4 +1,4 @@
-"""The add-verb dialog's choices, as saved in the add-on config."""
+"""The add-word dialog's choices, as saved in the add-on config."""
 
 from dataclasses import asdict, dataclass
 from typing import Any
